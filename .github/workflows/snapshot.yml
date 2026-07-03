@@ -27,6 +27,18 @@ jobs:
       - name: 抓取页面
         run: python -m checker.main --snapshot "${{ inputs.url }}"
 
+      - name: 打印捕获的 API 响应（前 4000 字符）
+        run: |
+          python - <<'EOF'
+          import json
+          from pathlib import Path
+          for f in sorted(Path("snapshots/api").glob("*.json")):
+              data = json.loads(f.read_text(encoding="utf-8"))
+              print(f"\n===== {data['status']} {data['url']} =====")
+              body = json.dumps(data["body"], ensure_ascii=False)
+              print(body[:4000])
+          EOF
+
       - name: 试跑通用解析器
         run: |
           python - <<'EOF'
