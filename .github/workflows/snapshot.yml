@@ -1,0 +1,42 @@
+name: 抓取页面快照（调试用）
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "要抓取的页面 URL"
+        required: true
+        default: "https://www.1-chome.com/index"
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: 抓取页面
+        run: python -m checker.main --snapshot "${{ inputs.url }}"
+
+      - name: 试跑通用解析器
+        run: |
+          python - <<'EOF'
+          from pathlib import Path
+          from checker.parser import extract_items
+          for f in Path("snapshots").glob("*.html"):
+              items = extract_items(f.read_text(encoding="utf-8"), {})
+              print(f"== {f.name}: 解析出 {len(items)} 个商品 ==")
+              for name, price in list(items.items())[:30]:
+                  print(f"  {name} -> ¥{price:,}")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: page-snapshot
+          path: snapshots/

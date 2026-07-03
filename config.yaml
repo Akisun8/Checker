@@ -1,0 +1,32 @@
+# 買取一丁目 (1-chome.com) 价格监控配置
+
+request:
+  timeout: 30
+  # 两次抓取之间的间隔（秒），避免请求过快
+  delay_seconds: 3
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+
+alert:
+  # 涨跌幅（百分比）达到该值就推送，例如 10 表示 ±10%
+  percent_threshold: 10
+  # 绝对变动金额（日元）达到该值也推送；0 表示不启用
+  absolute_threshold: 0
+  # 新收录的商品（第一次抓到）是否推送
+  notify_on_new: false
+
+# 要监控的页面列表。
+# item/name/price 三个选择器留空时，使用内置的通用解析（自动识别
+# 「商品名 + ¥xx,xxx / xx,xxx円」的组合）。如果通用解析抓取的结果
+# 不准确，先用快照工作流拿到页面 HTML，再填写精确的 CSS 选择器。
+pages:
+  - name: "首页"
+    url: "https://www.1-chome.com/index"
+    item_selector: ""
+    name_selector: ""
+    price_selector: ""
+  # 示例：监控某个分类/商品页（把 url 换成实际页面即可）
+  # - name: "iPhone 买取价格"
+  #   url: "https://www.1-chome.com/xxxx"
+  #   item_selector: "table.price-list tr"
+  #   name_selector: "td.item-name"
+  #   price_selector: "td.price"

@@ -1,0 +1,47 @@
+name: 价格监控
+
+on:
+  schedule:
+    # 每小时检查一次（UTC）。改成 "0 */3 * * *" 即每 3 小时一次
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: price-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: 运行价格检查
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          BARK_URL: ${{ secrets.BARK_URL }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: python -m checker.main
+
+      - name: 提交价格历史
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/history.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: 更新价格历史 $(date -u +%F_%H:%M)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi
