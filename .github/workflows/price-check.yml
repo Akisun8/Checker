@@ -26,8 +26,9 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: 安装浏览器（渲染 SPA 页面用）
-        run: playwright install --with-deps chromium
+      # 当前所有页面走 JSON 接口，无需浏览器。若在 config.yaml 中启用
+      # render: true 的页面，需恢复这一步：
+      # - run: playwright install --with-deps chromium
 
       - name: 运行价格检查
         env:

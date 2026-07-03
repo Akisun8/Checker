@@ -18,23 +18,25 @@ alert:
 # item/name/price 三个选择器留空时，使用内置的通用解析（自动识别
 # 「商品名 + ¥xx,xxx / xx,xxx円」的组合）。如果通用解析抓取的结果
 # 不准确，先用快照工作流拿到页面 HTML，再填写精确的 CSS 选择器。
-# render: true 表示用无头浏览器渲染后再解析（SPA 页面必须开启）
+# 每个页面直接对接网站的 JSON 接口（api_url），比解析 HTML 稳定。
+# url 仅用于推送消息里的链接展示。
+# max_pages: 最多翻页数（会自动按接口返回的 totalPages 截断）。
 pages:
-  - name: "手机"
+  - name: "手机 iPhone"
     url: "https://www.1-chome.com/mobile?category=RGNg976kptBN7UjF&page=1&size=24&isImpo=false&isCampaign=false&isImpoCate=false"
-    render: true
-    item_selector: ""
-    name_selector: ""
-    price_selector: ""
+    api_url: "https://www.1-chome.com/api/keitai/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=RGNg976kptBN7UjF&kbNames=&cateName=&isImpoCate=false"
+    max_pages: 20
   - name: "家电"
     url: "https://www.1-chome.com/electricAppliance?category=R0000002&page=1&size=24&isImpo=true&isCampaign=false"
-    render: true
-    item_selector: ""
-    name_selector: ""
-    price_selector: ""
-  - name: "卡片"
+    api_url: "https://www.1-chome.com/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=true&isCampaign=false&cateCode=R0000002&kbNames=&cateName="
+    max_pages: 20
+  - name: "宝可梦卡片"
     url: "https://www.1-chome.com/tradeCards?category=IIzyMdayU5wp7T4G&page=1&size=24&isImpo=false&isCampaign=false"
-    render: true
-    item_selector: ""
-    name_selector: ""
-    price_selector: ""
+    api_url: "https://www.1-chome.com/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=IIzyMdayU5wp7T4G&kbNames=&cateName="
+    max_pages: 20
+
+  # 也可以用 HTML 解析模式（不填 api_url 时生效）：
+  # - name: "某页面"
+  #   url: "https://..."
+  #   render: true          # SPA 页面需浏览器渲染
+  #   item_selector: ""     # 留空用通用启发式，或填 CSS 选择器

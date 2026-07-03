@@ -67,8 +67,13 @@ def check_page(page: dict, cfg: dict, history: dict) -> list[str]:
     alert_cfg = cfg["alert"]
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-    html = fetch(page["url"], cfg, render=page.get("render", False))
-    items = extract_items(html, page)
+    if page.get("api_url"):
+        from .api import fetch_api_items
+
+        items = fetch_api_items(page, cfg)
+    else:
+        html = fetch(page["url"], cfg, render=page.get("render", False))
+        items = extract_items(html, page)
     print(f"[{page['name']}] 抓到 {len(items)} 个商品")
 
     for name, price in items.items():
@@ -157,10 +162,15 @@ def save_snapshot(url: str) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="1-chome.com 价格监控")
     ap.add_argument("--snapshot", metavar="URL", help="抓取页面 HTML 保存到 snapshots/")
+    ap.add_argument("--test-notify", action="store_true", help="向所有已配置渠道发一条测试消息")
     args = ap.parse_args()
     if args.snapshot:
         save_snapshot(args.snapshot)
         return
+    if args.test_notify:
+        sent = notify.send("買取一丁目 价格监控", "✅ 测试推送成功，渠道配置正常。")
+        print(f"已发送测试消息到: {sent or '（未配置任何推送渠道）'}")
+        sys.exit(0 if sent else 1)
     sys.exit(run_check())
 
 
