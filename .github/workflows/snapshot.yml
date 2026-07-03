@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: "要抓取的页面 URL"
+        description: "要抓取的页面 URL 或路径（以 / 开头时自动拼上 TARGET_BASE_URL）"
         required: true
-        default: "https://www.1-chome.com/index"
+        default: "/index"
 
 jobs:
   snapshot:
@@ -25,6 +25,8 @@ jobs:
         run: playwright install --with-deps chromium
 
       - name: 抓取页面
+        env:
+          TARGET_BASE_URL: ${{ secrets.TARGET_BASE_URL }}
         run: python -m checker.main --snapshot "${{ inputs.url }}"
 
       - name: 打印捕获的 API 响应（前 4000 字符）

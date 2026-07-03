@@ -1,4 +1,7 @@
-# 買取一丁目 (1-chome.com) 价格监控配置
+# 价格监控配置
+# 目标网站域名不写在仓库里，而是通过环境变量 TARGET_BASE_URL 注入
+# （GitHub Secrets 中配置，例如 https://www.example.com）。
+# 下方所有以 / 开头的 url/api_url 运行时会自动拼上该域名。
 
 request:
   timeout: 30
@@ -9,34 +12,30 @@ request:
 alert:
   # 涨跌幅（百分比）达到该值就推送，例如 10 表示 ±10%
   percent_threshold: 10
-  # 绝对变动金额（日元）达到该值也推送；0 表示不启用
+  # 绝对变动金额达到该值也推送；0 表示不启用
   absolute_threshold: 0
   # 新收录的商品（第一次抓到）是否推送
   notify_on_new: false
 
-# 要监控的页面列表。
-# item/name/price 三个选择器留空时，使用内置的通用解析（自动识别
-# 「商品名 + ¥xx,xxx / xx,xxx円」的组合）。如果通用解析抓取的结果
-# 不准确，先用快照工作流拿到页面 HTML，再填写精确的 CSS 选择器。
 # 每个页面直接对接网站的 JSON 接口（api_url），比解析 HTML 稳定。
 # url 仅用于推送消息里的链接展示。
 # max_pages: 最多翻页数（会自动按接口返回的 totalPages 截断）。
 pages:
   - name: "手机 iPhone"
-    url: "https://www.1-chome.com/mobile?category=RGNg976kptBN7UjF&page=1&size=24&isImpo=false&isCampaign=false&isImpoCate=false"
-    api_url: "https://www.1-chome.com/api/keitai/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=RGNg976kptBN7UjF&kbNames=&cateName=&isImpoCate=false"
+    url: "/mobile?category=RGNg976kptBN7UjF&page=1&size=24&isImpo=false&isCampaign=false&isImpoCate=false"
+    api_url: "/api/keitai/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=RGNg976kptBN7UjF&kbNames=&cateName=&isImpoCate=false"
     max_pages: 20
   - name: "家电"
-    url: "https://www.1-chome.com/electricAppliance?category=R0000002&page=1&size=24&isImpo=true&isCampaign=false"
-    api_url: "https://www.1-chome.com/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=true&isCampaign=false&cateCode=R0000002&kbNames=&cateName="
+    url: "/electricAppliance?category=R0000002&page=1&size=24&isImpo=true&isCampaign=false"
+    api_url: "/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=true&isCampaign=false&cateCode=R0000002&kbNames=&cateName="
     max_pages: 20
   - name: "宝可梦卡片"
-    url: "https://www.1-chome.com/tradeCards?category=IIzyMdayU5wp7T4G&page=1&size=24&isImpo=false&isCampaign=false"
-    api_url: "https://www.1-chome.com/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=IIzyMdayU5wp7T4G&kbNames=&cateName="
+    url: "/tradeCards?category=IIzyMdayU5wp7T4G&page=1&size=24&isImpo=false&isCampaign=false"
+    api_url: "/api/goods/listPage?accCode=&page=1&size=24&keyword=&isImpo=false&isCampaign=false&cateCode=IIzyMdayU5wp7T4G&kbNames=&cateName="
     max_pages: 20
 
   # 也可以用 HTML 解析模式（不填 api_url 时生效）：
   # - name: "某页面"
-  #   url: "https://..."
+  #   url: "/..."
   #   render: true          # SPA 页面需浏览器渲染
   #   item_selector: ""     # 留空用通用启发式，或填 CSS 选择器
