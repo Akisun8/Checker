@@ -1,4 +1,4 @@
-"""直接调用 1-chome.com 的 JSON 接口获取商品价格。
+"""直接调用目标网站的 JSON 接口获取商品价格。
 
 listPage 类接口的响应结构（keitai / 其他品类通用字段）：
   data.totalPages

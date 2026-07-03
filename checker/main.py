@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -28,7 +29,22 @@ MAX_HISTORY_POINTS = 500
 
 def load_config() -> dict:
     with open(ROOT / "config.yaml", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f)
+    for page in cfg.get("pages", []):
+        for key in ("url", "api_url"):
+            if page.get(key):
+                page[key] = resolve_url(page[key])
+    return cfg
+
+
+def resolve_url(url: str) -> str:
+    """以 / 开头的路径拼上 TARGET_BASE_URL（存放在环境变量/Secrets 中的目标域名）。"""
+    if not url.startswith("/"):
+        return url
+    base = os.environ.get("TARGET_BASE_URL", "").rstrip("/")
+    if not base:
+        sys.exit("错误：未设置 TARGET_BASE_URL 环境变量（目标网站域名，如 https://www.example.com）")
+    return base + url
 
 
 def load_history() -> dict:
@@ -127,7 +143,7 @@ def run_check() -> int:
 
     if all_alerts:
         body = "\n\n".join(all_alerts)
-        title = "買取一丁目 价格变动提醒"
+        title = "价格变动提醒"
         sent = notify.send(title, body)
         print(f"已推送 {len(all_alerts) - 1} 条变动到: {sent or '（未配置任何推送渠道）'}")
         print(body)
@@ -141,6 +157,7 @@ def run_check() -> int:
 def save_snapshot(url: str) -> None:
     """保存原始 HTML、浏览器渲染后的 HTML，以及页面调用的 JSON 接口响应。"""
     cfg = load_config()
+    url = resolve_url(url)
     SNAPSHOT_DIR.mkdir(exist_ok=True)
     safe = re.sub(r"[^0-9A-Za-z._-]+", "_", url.split("//", 1)[-1])[:80]
 
@@ -160,7 +177,7 @@ def save_snapshot(url: str) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="1-chome.com 价格监控")
+    ap = argparse.ArgumentParser(description="商品价格监控")
     ap.add_argument("--snapshot", metavar="URL", help="抓取页面 HTML 保存到 snapshots/")
     ap.add_argument("--test-notify", action="store_true", help="向所有已配置渠道发一条测试消息")
     args = ap.parse_args()
@@ -168,7 +185,7 @@ def main() -> None:
         save_snapshot(args.snapshot)
         return
     if args.test_notify:
-        sent = notify.send("買取一丁目 价格监控", "✅ 测试推送成功，渠道配置正常。")
+        sent = notify.send("价格监控", "✅ 测试推送成功，渠道配置正常。")
         print(f"已发送测试消息到: {sent or '（未配置任何推送渠道）'}")
         sys.exit(0 if sent else 1)
     sys.exit(run_check())
