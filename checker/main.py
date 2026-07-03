@@ -44,7 +44,11 @@ def save_history(history: dict) -> None:
     )
 
 
-def fetch(url: str, cfg: dict) -> str:
+def fetch(url: str, cfg: dict, render: bool = False, capture_api_dir=None) -> str:
+    if render:
+        from .render import fetch_rendered
+
+        return fetch_rendered(url, cfg, capture_api_dir=capture_api_dir)
     resp = requests.get(
         url,
         headers={
@@ -63,7 +67,7 @@ def check_page(page: dict, cfg: dict, history: dict) -> list[str]:
     alert_cfg = cfg["alert"]
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-    html = fetch(page["url"], cfg)
+    html = fetch(page["url"], cfg, render=page.get("render", False))
     items = extract_items(html, page)
     print(f"[{page['name']}] 抓到 {len(items)} 个商品")
 
@@ -130,13 +134,24 @@ def run_check() -> int:
 
 
 def save_snapshot(url: str) -> None:
+    """保存原始 HTML、浏览器渲染后的 HTML，以及页面调用的 JSON 接口响应。"""
     cfg = load_config()
-    html = fetch(url, cfg)
     SNAPSHOT_DIR.mkdir(exist_ok=True)
     safe = re.sub(r"[^0-9A-Za-z._-]+", "_", url.split("//", 1)[-1])[:80]
-    path = SNAPSHOT_DIR / f"{safe}.html"
-    path.write_text(html, encoding="utf-8")
-    print(f"已保存快照: {path} ({len(html)} 字节)")
+
+    try:
+        raw = fetch(url, cfg)
+        (SNAPSHOT_DIR / f"{safe}.raw.html").write_text(raw, encoding="utf-8")
+        print(f"已保存原始 HTML: {safe}.raw.html ({len(raw)} 字节)")
+    except Exception as exc:
+        print(f"原始 HTML 抓取失败: {exc}", file=sys.stderr)
+
+    try:
+        rendered = fetch(url, cfg, render=True, capture_api_dir=SNAPSHOT_DIR / "api")
+        (SNAPSHOT_DIR / f"{safe}.rendered.html").write_text(rendered, encoding="utf-8")
+        print(f"已保存渲染后 HTML: {safe}.rendered.html ({len(rendered)} 字节)")
+    except Exception as exc:
+        print(f"浏览器渲染失败: {exc}", file=sys.stderr)
 
 
 def main() -> None:

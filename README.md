@@ -49,10 +49,13 @@ alert:
 pages:
   - name: "iPhone 买取价格"
     url: "https://www.1-chome.com/xxxx"
+    render: true                           # SPA 页面需开启浏览器渲染
     item_selector: "table.price-list tr"   # 每个商品条目
     name_selector: "td.item-name"          # 条目内的商品名
     price_selector: "td.price"             # 条目内的价格
 ```
+
+快照工作流会同时保存**原始 HTML**、**浏览器渲染后的 HTML**，以及页面加载时调用的 **JSON 接口响应**（`snapshots/api/`）。如果快照里发现网站有现成的价格 JSON 接口，直接对接接口会比解析 HTML 更稳定——把接口响应发给我即可帮你切换。
 
 ## 本地运行
 

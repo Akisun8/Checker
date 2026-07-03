@@ -18,15 +18,23 @@ alert:
 # item/name/price 三个选择器留空时，使用内置的通用解析（自动识别
 # 「商品名 + ¥xx,xxx / xx,xxx円」的组合）。如果通用解析抓取的结果
 # 不准确，先用快照工作流拿到页面 HTML，再填写精确的 CSS 选择器。
+# render: true 表示用无头浏览器渲染后再解析（SPA 页面必须开启）
 pages:
-  - name: "首页"
-    url: "https://www.1-chome.com/index"
+  - name: "手机"
+    url: "https://www.1-chome.com/mobile?category=RGNg976kptBN7UjF&page=1&size=24&isImpo=false&isCampaign=false&isImpoCate=false"
+    render: true
     item_selector: ""
     name_selector: ""
     price_selector: ""
-  # 示例：监控某个分类/商品页（把 url 换成实际页面即可）
-  # - name: "iPhone 买取价格"
-  #   url: "https://www.1-chome.com/xxxx"
-  #   item_selector: "table.price-list tr"
-  #   name_selector: "td.item-name"
-  #   price_selector: "td.price"
+  - name: "家电"
+    url: "https://www.1-chome.com/electricAppliance?category=R0000002&page=1&size=24&isImpo=true&isCampaign=false"
+    render: true
+    item_selector: ""
+    name_selector: ""
+    price_selector: ""
+  - name: "卡片"
+    url: "https://www.1-chome.com/tradeCards?category=IIzyMdayU5wp7T4G&page=1&size=24&isImpo=false&isCampaign=false"
+    render: true
+    item_selector: ""
+    name_selector: ""
+    price_selector: ""
